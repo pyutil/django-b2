@@ -1,11 +1,3 @@
-# add this to your settings:
-
-# DEFAULT_FILE_STORAGE = 'django_b2.storage.B2Storage'
-# BACKBLAZEB2_APP_KEY_ID = '000xxxxxxxxxxxx000000000n'
-# BACKBLAZEB2_APP_KEY = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
-# BACKBLAZEB2_BUCKET_NAME = '<bucket-name>'
-
-
 import uuid
 
 from b2sdk.v1 import B2Api, DownloadDestBytes, InMemoryAccountInfo, UploadSourceBytes
@@ -52,7 +44,7 @@ class BackBlazeB2(object):
         return self.bucket.upload(uploadsource, name)
 
     def upload_file_unique_name(self, name, content):
-        return self.upload_file(make_name_unique(name), content)
+        return self.upload_file(self.get_alternative_name(name), content)
 
     def delete_by_name(self, name):
         for version in self.versions_by_name(name):
@@ -81,41 +73,85 @@ class BackBlazeB2(object):
 
     # maybe expensive
     def ls(self, path, fetch_count=LS_FETCH_COUNT):
-        # this is generator;
         assert self.is_prepared()
+        # this is generator (which handles chunks, so it returns all entries & fetch_count has an internal effect only)
         return self.bucket.ls(folder_to_list=path, fetch_count=fetch_count)
 
-    def versions_by_name(self, name):
+    # maybe expensive
+    def listdir(self, path):
+        """
+            :return: compatible with Django storage : listdir
+        """
+        if len(path) and path[-1] != '/':
+            path += '/'
+        dirs = set()
+        files = []
+        for file_info, file_path in self.ls(path):
+            if file_path is None:
+                files.append(file_info.file_name.rsplit('/', 1)[-1])
+            else:
+                file_path = file_path[len(path):]
+                dirs.add(file_path.split('/', 1)[0])
+        return list(dirs), files
+
+    def file_by_name(self, name):
         # is there a less stupid way to do it?
         assert self.is_prepared()
         fn = self.b2_api.raw_api.list_file_names(self.b2_api.account_info.get_api_url(),
                                                  self.b2_api.account_info.get_account_auth_token(),
                                                  self.bucket.get_id(),
-                                                 start_file_name=name, max_file_count=1, prefix=name)
-        versions = []
+                                                 start_file_name=name, max_file_count=None, prefix=name)
+        return self._x_by_name_result(fn, name)
+
+    def versions_by_name(self, name):
+        # is there a less stupid way to do it?
+        assert self.is_prepared()
+        fn = self.b2_api.raw_api.list_file_versions(self.b2_api.account_info.get_api_url(),
+                                                    self.b2_api.account_info.get_account_auth_token(),
+                                                    self.bucket.get_id(),
+                                                    start_file_name=name, prefix=name)
+        return self._x_by_name_result(fn, name)
+
+    def _x_by_name_result(self, fn, name):
+        res = []
         for f in fn['files']:
             if f['fileName'] == name:
-                versions.append(f)
-        return versions
+                res.append(f)
+        return res
 
     def file_id_by_name(self, name):
         # is there a less stupid way to do it?
-        versions = self.versions_by_name(name)
-        if len(versions) == 0:
+        f = self.file_by_name(name)
+        if len(f) == 0:
             return None
         else:
-            return versions[0]['fileId']
+            return f[0]['fileId']
+
+    def get_accessed_time(self, name):
+        versions = versions_by_name(name)
+        from pdb import set_trace; set_trace()
+        return self._datetime_from_timestamp(os.path.getatime(self.path(name)))
+
+    def get_created_time(self, name):
+        return self._datetime_from_timestamp(os.path.getctime(self.path(name)))
+
+    def get_modified_time(self, name):
+        return self._datetime_from_timestamp(os.path.getmtime(self.path(name)))
+
+    # named compatible with Django 3.0
+    def get_alternative_name(self, name):
+        name = name.split('/')
+        name.insert(len(name) - 1, str(uuid.uuid4()))
+        return '/'.join(name)
+
+    def get_original_name(self, name):
+        return get_original_name(name)
 
 
-# ----------------------- utils -----------------------
+# ------- utils, can be imported separately -----------------------
 
 
-def make_name_unique(name):
-    name = name.split('/')
-    name.insert(len(name) - 1, str(uuid.uuid4()))
-    return '/'.join(name)
-
-
+# revert get_alternative_name()
 def get_original_name(name):
     name = name.split('/')
     if len(name) > 1:

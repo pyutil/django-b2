@@ -1,3 +1,11 @@
+# add this to your Django settings:
+
+# DEFAULT_FILE_STORAGE = 'django_b2.storage.B2Storage'
+# B2_APP_KEY_ID = '000xxxxxxxxxxxx000000000n'
+# B2_APP_KEY = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
+# B2_BUCKET_NAME = '<bucket-name>'
+
+
 from io import BytesIO
 
 from django.conf import settings
@@ -40,9 +48,9 @@ class B2File(File):
 @deconstructible
 class B2Storage(Storage):
     def __init__(self):
-        application_key_id = settings.BACKBLAZEB2_APP_KEY_ID
-        application_key = settings.BACKBLAZEB2_APP_KEY
-        bucket_id = settings.BACKBLAZEB2_BUCKET_NAME
+        application_key_id = settings.B2_APP_KEY_ID
+        application_key = settings.B2_APP_KEY
+        bucket_id = settings.B2_BUCKET_NAME
 
         self.b2 = BackBlazeB2()
         self.authorize(application_key_id, application_key)
@@ -57,6 +65,16 @@ class B2Storage(Storage):
         return self.b2.set_bucket(bucket_id)
 
     # ------------- django Storage extension --------------
+
+    # method added with regard to Django 3.0 compatibility, both (available/alternative) do the same: add <uuid>/
+    def get_alternative_name(self, file_root, file_ext=''):
+        name = '%s%s' % (file_root, file_ext)
+        return self.b2.get_alternative_name(name)
+
+    # both (available/alternative) do the same: add <uuid>/
+    # important to have this: to prevent inefficient .exists() call
+    def get_available_name(self, name, max_length=None):
+        return self.b2.get_alternative_name(name)
 
     def _open(self, name, mode='rb'):
         '''
@@ -83,17 +101,7 @@ class B2Storage(Storage):
 
     # maybe expensive
     def listdir(self, path):
-        if len(path) and path[-1] != '/':
-            path += '/'
-        dirs = set()
-        files = []
-        for file_info, file_path in self.b2.ls(path):
-            if file_path is None:
-                files.append(file_info.file_name.rsplit('/', 1)[-1])
-            else:
-                file_path = file_path[len(path):]
-                dirs.add(file_path.split('/', 1)[0])
-        return list(dirs), files
+        return self.b2.listdir(path)
 
     def exists(self, name):
         return self.b2.file_id_by_name(name) is not None
@@ -108,3 +116,21 @@ class B2Storage(Storage):
         # This is needed because Django will throw an exception if it's not
         # overridden by Storage subclasses. We don't need it.
         return name
+        # TODO: maybe this can be used to avoid some downloads / cache files locally?
+        '''
+        """
+        Return a local filesystem path where the file can be retrieved using
+        Python's built-in open() function. Storage systems that can't be
+        accessed using open() should *not* implement this method.
+        """
+        raise NotImplementedError("This backend doesn't support absolute paths.")
+        '''
+
+    def get_accessed_time(self, name):
+        return self.b2.get_accessed_time(name)
+
+    def get_created_time(self, name):
+        return self.b2.get_created_time(name)
+
+    def get_modified_time(self, name):
+        return self.b2.get_modified_time(name)
