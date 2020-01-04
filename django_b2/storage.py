@@ -1,9 +1,21 @@
-# add this to your Django settings:
+"""
+    B2Storage
+        uses b2sdk
 
-# DEFAULT_FILE_STORAGE = 'django_b2.storage.B2Storage'
-# B2_APP_KEY_ID = '000xxxxxxxxxxxx000000000n'
-# B2_APP_KEY = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
-# B2_BUCKET_NAME = '<bucket-name>'
+    add this to your Django settings:
+        DEFAULT_FILE_STORAGE = 'django_b2.storage.B2Storage'
+        B2_APP_KEY_ID = '000xxxxxxxxxxxx000000000n'
+        B2_APP_KEY = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
+        B2_BUCKET_NAME = '<bucket-name>'
+
+    this storage makes names unique by change path/name into path/<uuid>/name
+        so it is not compatible with storage uploaded using django-backblazeb2-storage
+            where files with same names are uploaded without name change and as versions of same file
+
+    behaviour of exceptions (FileNotFoundError, NotADirectoryError, ..) is not fully compatible
+
+    methods _open, save works but need experienced revision and rewrite (please help)
+"""
 
 
 from io import BytesIO
@@ -93,7 +105,7 @@ class B2Storage(Storage):
         return B2File(name, download_dest)
 
     def _save(self, name, content, max_length=None):
-        response = self.b2.upload_file_unique_name(name, content)
+        response = self.b2.upload_file(name, content)
         return response.file_name
 
     def delete(self, name):
@@ -127,10 +139,10 @@ class B2Storage(Storage):
         '''
 
     def get_accessed_time(self, name):
-        return self.b2.get_accessed_time(name)
+        return self.b2.get_accessed_time(name, use_tz=settings.USE_TZ)
 
     def get_created_time(self, name):
-        return self.b2.get_created_time(name)
+        return self.b2.get_created_time(name, use_tz=settings.USE_TZ)
 
     def get_modified_time(self, name):
-        return self.b2.get_modified_time(name)
+        return self.b2.get_modified_time(name, use_tz=settings.USE_TZ)

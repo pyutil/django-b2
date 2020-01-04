@@ -1,6 +1,13 @@
+from datetime import datetime
 import uuid
 
 from b2sdk.v1 import B2Api, DownloadDestBytes, InMemoryAccountInfo, UploadSourceBytes
+
+try:
+    from django.utils import timezone
+    USE_TZ = True
+except (ModuleNotFoundError, ImportError) as exc:
+    USE_TZ = False
 
 
 LS_FETCH_COUNT = 1000    # probably 100 is default, 1000-10000 are paid based on 1000-chunks
@@ -43,7 +50,10 @@ class BackBlazeB2(object):
         uploadsource = UploadSourceBytes(content.read())
         return self.bucket.upload(uploadsource, name)
 
-    def upload_file_unique_name(self, name, content):
+    def upload_file_unique_name_outside_django(self, name, content):
+        """
+            django storage auto-calls get_alternative_name() so from django call upload_file() directly
+        """
         return self.upload_file(self.get_alternative_name(name), content)
 
     def delete_by_name(self, name):
@@ -100,7 +110,7 @@ class BackBlazeB2(object):
         fn = self.b2_api.raw_api.list_file_names(self.b2_api.account_info.get_api_url(),
                                                  self.b2_api.account_info.get_account_auth_token(),
                                                  self.bucket.get_id(),
-                                                 start_file_name=name, max_file_count=None, prefix=name)
+                                                 start_file_name=name, max_file_count=1, prefix=name)
         return self._x_by_name_result(fn, name)
 
     def versions_by_name(self, name):
@@ -127,16 +137,27 @@ class BackBlazeB2(object):
         else:
             return f[0]['fileId']
 
-    def get_accessed_time(self, name):
-        versions = versions_by_name(name)
-        from pdb import set_trace; set_trace()
-        return self._datetime_from_timestamp(os.path.getatime(self.path(name)))
+    def get_accessed_time(self, name, use_tz=USE_TZ):
+        f = self.file_by_name(name)
+        return self._get_time_from_fileinfo(f, use_tz)
 
-    def get_created_time(self, name):
-        return self._datetime_from_timestamp(os.path.getctime(self.path(name)))
+    def get_created_time(self, name, use_tz=USE_TZ):
+        versions = self.versions_by_name(name)
+        return self._get_time_from_fileinfo(versions, use_tz)
 
-    def get_modified_time(self, name):
-        return self._datetime_from_timestamp(os.path.getmtime(self.path(name)))
+    def get_modified_time(self, name, use_tz=USE_TZ):
+        f = self.file_by_name(name)
+        return self._get_time_from_fileinfo(f, use_tz)
+
+    @staticmethod
+    def _get_time_from_fileinfo(fileinfo, use_tz):
+        if not fileinfo:
+            return None
+        ts = int(fileinfo[-1]['uploadTimestamp'] / 1000)
+        if use_tz:
+            return datetime.utcfromtimestamp(ts).replace(tzinfo=timezone.utc)
+        else:
+            return datetime.fromtimestamp(ts)
 
     # named compatible with Django 3.0
     def get_alternative_name(self, name):
