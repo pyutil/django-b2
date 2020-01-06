@@ -25,7 +25,7 @@ from django.core.files.storage import Storage
 from django.core.files.base import File
 from django.utils.deconstruct import deconstructible
 
-from .backblaze_b2 import BackBlazeB2
+from django_b2.backblaze_b2 import BackBlazeB2
 
 
 # B2File related imports, TODO: mix with non-experimental imports if B2File will be used

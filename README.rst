@@ -25,33 +25,19 @@ Install django-b2::
 
     pip install django-b2
 
-Add it to your `INSTALLED_APPS`:
+Add itno your settings:
 
 .. code-block:: python
 
-    INSTALLED_APPS = (
-        ...
-        'django_b2.apps.DjangoB2Config',
-        ...
-    )
-
-Add django-b2's URL patterns:
-
-.. code-block:: python
-
-    from django_b2 import urls as django_b2_urls
-
-
-    urlpatterns = [
-        ...
-        url(r'^', include(django_b2_urls)),
-        ...
-    ]
+    DEFAULT_FILE_STORAGE = 'django_b2.storage.B2Storage'
+    B2_APP_KEY_ID=000xxxxxxxxxxx000000000n    # application key ID
+    B2_APP_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxx  # application key value
+    B2_BUCKET_NAME=xxxxxxxxxxxxx              # bucketname
 
 Features
 --------
 
-* TODO
+Django media storage (with storage.py) or general python access to BackBlaze B2 (without use of storage.py).
 
 Running Tests
 -------------

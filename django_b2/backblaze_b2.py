@@ -64,6 +64,16 @@ class BackBlazeB2(object):
         assert self.is_prepared()
         return self.bucket.delete_file_version(file_id, name)
 
+    # maybe expensive
+    def purge_bucket(self):
+        # purge large uncommitted uploads is not implemented here
+        while True:
+            versions = self._list_versions()
+            for version in versions['files']:
+                self.delete_file_version(version['fileName'], version['fileId'])
+            if versions['nextFileId'] is None:
+                break
+
     def get_file_info(self, file_id):
         assert self.is_prepared()
         return self.b2_api.get_file_info(file_id)
@@ -115,12 +125,28 @@ class BackBlazeB2(object):
 
     def versions_by_name(self, name):
         # is there a less stupid way to do it?
-        assert self.is_prepared()
-        fn = self.b2_api.raw_api.list_file_versions(self.b2_api.account_info.get_api_url(),
-                                                    self.b2_api.account_info.get_account_auth_token(),
-                                                    self.bucket.get_id(),
-                                                    start_file_name=name, prefix=name)
+        fn = self._list_versions(name)
         return self._x_by_name_result(fn, name)
+
+    def _list_versions(self, name=None, start_file_name=None, start_file_id=None):
+        # returns at most 1000 file names per transaction
+        assert self.is_prepared()
+        if name:
+            start_file_name = name
+            kwargs = {'prefix': name}
+        else:
+            kwargs = {}
+        retval = self.b2_api.raw_api.list_file_versions(self.b2_api.account_info.get_api_url(),
+                                                        self.b2_api.account_info.get_account_auth_token(),
+                                                        self.bucket.get_id(),
+                                                        start_file_name=start_file_name,
+                                                        start_file_id=start_file_id,
+                                                        max_file_count=LS_FETCH_COUNT,
+                                                        **kwargs)
+        if type(retval) == dict:
+            return retval
+        else:
+            return {'files': []}  # seems at 2020-01-06 b2_api returns str:'files', which is probably a minor bug
 
     def _x_by_name_result(self, fn, name):
         res = []
@@ -137,15 +163,16 @@ class BackBlazeB2(object):
         else:
             return f[0]['fileId']
 
-    def get_accessed_time(self, name, use_tz=USE_TZ):
-        f = self.file_by_name(name)
-        return self._get_time_from_fileinfo(f, use_tz)
+    def get_accessed_time(self, name, use_tz=USE_TZ):  # we haven't accessed time, so..
+        return self.get_modified_time(name, use_tz)        # TODO: isn't NotImplemented better?
 
     def get_created_time(self, name, use_tz=USE_TZ):
+        assert self.is_prepared()
         versions = self.versions_by_name(name)
         return self._get_time_from_fileinfo(versions, use_tz)
 
     def get_modified_time(self, name, use_tz=USE_TZ):
+        assert self.is_prepared()
         f = self.file_by_name(name)
         return self._get_time_from_fileinfo(f, use_tz)
 
