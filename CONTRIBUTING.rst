@@ -56,6 +56,7 @@ Get Started!
 ------------
 
 Ready to contribute? Here's how to set up `django-b2` for local development.
+This is a standard workflow. You can find similar alternative description in github's README.md.
 
 1. Fork the `django-b2` repo on GitHub.
 2. Clone your fork locally::
@@ -100,13 +101,5 @@ Before you submit a pull request, check that it meets these guidelines:
 2. If the pull request adds functionality, the docs should be updated. Put
    your new functionality into a function with a docstring, and add the
    feature to the list in README.rst.
-3. The pull request should work for Python 2.6, 2.7, and 3.3, and for PyPy. Check 
-   https://travis-ci.org/pyutil/django-b2/pull_requests
-   and make sure that the tests pass for all supported Python versions.
-
-Tips
-----
-
-To run a subset of tests::
-
-    $ python -m unittest tests.test_django_b2
+3. The pull request should work for new Python 3 versions and for PyPy (optional).
+   Check tox.ini and make sure that the tests pass for all supported Python versions.

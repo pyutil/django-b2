@@ -62,19 +62,19 @@ class B2Storage(Storage):
     def __init__(self):
         application_key_id = settings.B2_APP_KEY_ID
         application_key = settings.B2_APP_KEY
-        bucket_id = settings.B2_BUCKET_NAME
+        bucket_name = settings.B2_BUCKET_NAME
 
         self.b2 = BackBlazeB2()
         self.authorize(application_key_id, application_key)
-        self.set_bucket(bucket_id)
+        self.set_bucket(bucket_name)
 
     # you can re-authorize later
     def authorize(self, application_key_id, application_key):
         return self.b2.authorize("production", application_key_id, application_key)
 
     # you can change bucket later
-    def set_bucket(self, bucket_id):
-        return self.b2.set_bucket(bucket_id)
+    def set_bucket(self, bucket_name):
+        return self.b2.set_bucket(bucket_name)
 
     # ------------- django Storage extension --------------
 
@@ -104,8 +104,8 @@ class B2Storage(Storage):
         download_dest = self.b2.download_file_download_dest(name)
         return B2File(name, download_dest)
 
-    def _save(self, name, content, max_length=None):
-        response = self.b2.upload_file(name, content)
+    def _save(self, name, f, max_length=None):
+        response = self.b2.upload_file(name, f)
         return response.file_name
 
     def delete(self, name):

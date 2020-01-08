@@ -37,7 +37,7 @@ class BackBlazeB2(object):
     # ------------------------------------------------------------------
 
     def download_file(self, name):                 # return DownloadDestBytes() str content
-        return download_file_download_dest(name).get_bytes_written()
+        return self.download_file_download_dest(name).get_bytes_written()
 
     def download_file_download_dest(self, name):   # return DownloadDestBytes() object
         assert self.is_prepared()
@@ -45,16 +45,19 @@ class BackBlazeB2(object):
         self.bucket.download_file_by_name(name, download_dest)
         return download_dest
 
-    def upload_file(self, name, content):
+    def upload_file(self, name, f):
         assert self.is_prepared()
-        uploadsource = UploadSourceBytes(content.read())
+        content = f.read()
+        if 'b' not in f.mode:
+            content = content.encode()
+        uploadsource = UploadSourceBytes(content)
         return self.bucket.upload(uploadsource, name)
 
-    def upload_file_unique_name_outside_django(self, name, content):
+    def upload_file_unique_name_outside_django(self, name, f):
         """
             django storage auto-calls get_alternative_name() so from django call upload_file() directly
         """
-        return self.upload_file(self.get_alternative_name(name), content)
+        return self.upload_file(self.get_alternative_name(name), f)
 
     def delete_by_name(self, name):
         for version in self.versions_by_name(name):
