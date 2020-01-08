@@ -11,7 +11,7 @@ django-b2
 .. image:: https://codecov.io/gh/pyutil/django-b2/branch/master/graph/badge.svg
     :target: https://codecov.io/gh/pyutil/django-b2
 
-django backblaze b2 storage using b2sdk
+django backblaze b2 storage using b2sdk (b2sdk is official backblaze python library)
 
 Documentation
 -------------
@@ -70,8 +70,10 @@ Credits
 
 Tools used in rendering this package:
 
-*  Cookiecutter_
+*  b2sdk_
+*  cookiecutter_
 *  `cookiecutter-djangopackage`_
 
-.. _Cookiecutter: https://github.com/audreyr/cookiecutter
+.. _b2sdk: https://github.com/Backblaze/b2-sdk-python
+.. _cookiecutter: https://github.com/audreyr/cookiecutter
 .. _`cookiecutter-djangopackage`: https://github.com/pydanny/cookiecutter-djangopackage
