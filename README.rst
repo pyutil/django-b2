@@ -52,7 +52,7 @@ Using outside of Django:
 Features
 --------
 
-Django media storage (with storage.py) or general python access to BackBlaze B2 (without use of storage.py).
+Django media storage (with storage.py) or general python access to BackBlaze B2 (without usage of storage.py).
 
 Running Tests
 -------------

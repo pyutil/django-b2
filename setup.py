@@ -6,7 +6,8 @@
     python setup.py tag
     twine upload --repository-url https://test.pypi.org/legacy/ dist/*
     ověřit proklikem verze a instalací: pip install -i https://test.pypi.org/simple/ django-b2
-    twine upload --repository-url https://www.pypi.org/legacy/ dist/*
+    v docs: make html
+    twine upload dist/*
 """
 
 import os
