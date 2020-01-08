@@ -4,9 +4,11 @@
     edit _version.py
     python setup.py dist
     python setup.py tag
+    commit/push (neccessary to update readthedocs)
     twine upload --repository-url https://test.pypi.org/legacy/ dist/*
-    ověřit proklikem verze a instalací: pip install -i https://test.pypi.org/simple/ django-b2
-    v docs: make html, na readthedocs.org proklik na jméno(účet) a sestavit dokumentaci
+    make sure: click a link on test.pypi and install: pip install -i https://test.pypi.org/simple/ django-b2
+    not required, but if I want to have docs/_build (it is git-excluded) generated: v docs: make html
+    on readthedocs.org click your name(account) and (re)build docs
     twine upload dist/*
 """
 
