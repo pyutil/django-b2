@@ -1,5 +1,6 @@
 """
-    configure HIDDEN_SETTINGS file (see bellow), section [b2], B2_APP_KEY_ID=000xx..., B2_APP_KEY=.., B2_BUCKET_NAME=..
+    configure HIDDEN_SETTINGS_AS_FILE file (see bellow),
+        section [b2], B2_APP_KEY_ID=000xx..., B2_APP_KEY=.., B2_BUCKET_NAME=..
 
     alternatively if this is not possible set the environment variables with same names
 """

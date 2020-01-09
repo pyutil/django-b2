@@ -1,3 +1,3 @@
 # Additional requirements go here
 
-b2sdk
+b2sdk==1.0.2  # duplicate in setup.py
