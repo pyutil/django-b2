@@ -50,7 +50,7 @@ Using outside of Django:
         f.write(content)
 
 Nginx large file uploads:
-You need at least modify /etc/nginx/nginx.conf, http section, add client_... settings.
+You need at least modify /etc/nginx/nginx.conf, http section, add client... settings.
 Read: https://vsoch.github.io/2018/django-nginx-upload/
 
 Features
