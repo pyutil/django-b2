@@ -49,6 +49,10 @@ Using outside of Django:
     with open(filename2, 'wb') as f:
         f.write(content)
 
+Nginx large file uploads:
+You need at least modify /etc/nginx/nginx.conf, http section, add client... settings.
+Read: https://vsoch.github.io/2018/django-nginx-upload/
+
 Features
 --------
 

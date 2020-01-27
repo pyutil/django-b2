@@ -36,6 +36,10 @@ Don't use the storage.py file. Use the backblaze_b2.py only.
     with open(filename2, 'wb') as f:
         f.write(content)
 
+Nginx large file uploads:
+You need at least modify /etc/nginx/nginx.conf, http section, add client_... settings.
+Read: https://vsoch.github.io/2018/django-nginx-upload/
+
 ## Developers
 
 Upload and Download methods work, but probably very stupid and non-effective.

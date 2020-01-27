@@ -82,7 +82,7 @@ This is a standard workflow. You can find similar alternative description in git
         $ python setup.py test
         $ tox
 
-   To get flake8 and tox, just pip install them into your virtualenv. 
+      To get flake8 and tox, just pip install them into your virtualenv: pip install -r requirements_test.txt
 
 6. Commit your changes and push your branch to GitHub::
 
