@@ -1,3 +1,7 @@
+# except of its standard usage this can be used as the copy/upload command to backblaze
+#   for help write: python backblaze_b2 --help
+#   warning: additional imports for this usage are in 'command' section bellow
+
 from datetime import datetime
 import uuid
 
@@ -24,6 +28,7 @@ class BackBlazeB2(object):
 
     # need to call this after instantiate; you could change this later
     def authorize(self, name, application_key_id, application_key):
+        # name: usually can be: "production"
         self.b2_api.authorize_account(name, application_key_id, application_key)
         self.authorized = True
 
@@ -208,3 +213,43 @@ def get_original_name(name):
     if len(name) > 1:
         del name[-2]
     return '/'.join(name)
+
+
+# ------- commands -----------------------
+
+if __name__ == '__main__':   # upload file to backblaze
+    # additional imports
+    import os
+    import sys
+    from configparser import RawConfigParser
+    # parse commandline
+    cp_argv = sys.argv
+    cp_filename = cp_argv[1:2]
+    cp_envfile = cp_argv[2:3]
+    cp_section = cp_argv[3:4]
+    cp_b2path = cp_argv[4:5] or ''
+    if ('-h' not in cp_argv[1:] and '--help' not in cp_argv[1:] and
+        cp_filename and cp_envfile and cp_section and os.path.isfile(cp_filename) and os.path.isfile(cp_envfile)):
+        # doit !
+        config = RawConfigParser()
+        config.read(cp_envfile)
+
+        cp_b2 = BackBlazeB2()
+        cp_b2.authorize("production", application_key_id, application_key)
+        cp_b2.set_bucket(self, bucket_name)
+
+        with open(cp_filename, 'rb') as f:
+            cp_b2.upload_file(name, f)
+    else:
+        # print help
+        print()
+        print('Copy/upload file to b2: python backblaze_b2 filename envfile section [b2path]')
+        print()
+        print(4 * ' ' + 'filename  file to be uploaded')
+        print(4 * ' ' + 'envfile   .ini style file with backblaze settings')
+        print(4 * ' ' + 'section   section name in <envfile>, the section must contain:')
+        print(8 * ' ' + 'B2_APP_KEY_ID=000xxxxxxxxxxxx000000000n')
+        print(8 * ' ' + 'B2_APP_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
+        print(8 * ' ' + 'B2_BUCKET_NAME=bucketname')
+        print(4 * ' ' + 'b2path    optional path in the target bucket')
+        print()
