@@ -222,34 +222,51 @@ if __name__ == '__main__':   # upload file to backblaze
     import os
     import sys
     from configparser import RawConfigParser
+
     # parse commandline
     cp_argv = sys.argv
-    cp_filename = cp_argv[1:2]
-    cp_envfile = cp_argv[2:3]
-    cp_section = cp_argv[3:4]
-    cp_b2path = cp_argv[4:5] or ''
-    if ('-h' not in cp_argv[1:] and '--help' not in cp_argv[1:] and
-        cp_filename and cp_envfile and cp_section and os.path.isfile(cp_filename) and os.path.isfile(cp_envfile)):
-        # doit !
-        config = RawConfigParser()
-        config.read(cp_envfile)
-
-        cp_b2 = BackBlazeB2()
-        cp_b2.authorize("production", application_key_id, application_key)
-        cp_b2.set_bucket(self, bucket_name)
-
-        with open(cp_filename, 'rb') as f:
-            cp_b2.upload_file(name, f)
+    cp_hlp = False
+    if ('-h' in cp_argv[1:] or '--help' in cp_argv[1:]):
+        cp_hlp = True
     else:
+        cp_filename = cp_argv[1:2]       # copy source
+        cp_envfile = cp_argv[2:3]        # .ini file with target bucket parameters
+        cp_section = cp_argv[3:4]        # sectionname in .ini file with target bucket parameters
+        cp_b2path = cp_argv[4:5] or ''   # optional: path in the target destination
+        if cp_filename and cp_envfile and cp_section and os.path.isfile(cp_filename) and os.path.isfile(cp_envfile):
+            # get parameters about the target bucket
+            config = RawConfigParser()
+            config.read(cp_envfile)
+
+            cp_app_key_id = os.environ.get('BK_B2_APP_KEY_ID') or config.get(cp_section, 'B2_APP_KEY_ID')
+            cp_app_key = os.environ.get('BK_B2_APP_KEY') or config.get(cp_section, 'B2_APP_KEY')
+            cp_bucket_name = os.environ.get('BK_B2_BUCKET_NAME') or config.get(cp_section, 'B2_BUCKET_NAME')
+
+            if cp_app_key_id and cp_app_key and cp_bucket_name:
+                # copy !
+                cp_b2 = BackBlazeB2()
+                cp_b2.authorize("production", application_key_id, application_key)
+                cp_b2.set_bucket(self, bucket_name)
+
+                with open(cp_filename, 'rb') as f:
+                    cp_b2.upload_file(name, f)
+            else:
+                print()
+                print('FAILED: Parameters for the target bucket not found, in env-variables or in cp_envfile')
+                cp_hlp = True
+        else:
+            cp_hlp = True
+
+    if cp_hlp:
         # print help
         print()
         print('Copy/upload file to b2: python backblaze_b2 filename envfile section [b2path]')
         print()
-        print(4 * ' ' + 'filename  file to be uploaded')
+        print(4 * ' ' + 'filename  file to be uploaded (path is used to find but striped in the target b2 destination)')
         print(4 * ' ' + 'envfile   .ini style file with backblaze settings')
         print(4 * ' ' + 'section   section name in <envfile>, the section must contain:')
         print(8 * ' ' + 'B2_APP_KEY_ID=000xxxxxxxxxxxx000000000n')
         print(8 * ' ' + 'B2_APP_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
         print(8 * ' ' + 'B2_BUCKET_NAME=bucketname')
-        print(4 * ' ' + 'b2path    optional path in the target bucket')
+        print(4 * ' ' + 'b2path    optional path in the target bucket (use == to take the source path)')
         print()
