@@ -237,7 +237,7 @@ if __name__ == '__main__':   # upload file to backblaze
                            help="source filename include path; for b2 target basename is used, for path use --b2path")
     cp_parser.add_argument('-e', '--env', action="store", dest='envfile',
                            help=".ini file containing b2 parameters; default: use environment variables instead"
-                           " (environment variables must be prefixed BK_, ie. BK_B2_APP_KEY_ID and so on)")
+                           " (they must be prefixed BK_, ie. BK_B2_APP_KEY_ID and so on)")
     cp_parser.add_argument('-s', '--section', action="store", dest='section', default='backup',
                            help="section in --env .ini file; default: backup, ie. read the section [backup]\n"
                            "the section must contain these parameters:\n"
@@ -265,10 +265,10 @@ if __name__ == '__main__':   # upload file to backblaze
             # copy !
             cp_b2 = BackBlazeB2()
             cp_b2.authorize("production", cp_app_key_id, cp_app_key)
-            cp_b2.set_bucket(self, cp_bucket_name)
+            cp_b2.set_bucket(cp_bucket_name)
 
-            with open(cp_filename, 'rb') as f:
-                cp_b2.upload_file(os.path.join(cp_b2path, os.path.basename(cp_filename)), f)
+            with open(cp_par.filename, 'rb') as f:
+                cp_b2.upload_file(os.path.join(cp_par.b2path, os.path.basename(cp_par.filename)), f)
         else:
             print('FAILED: Parameters for the target bucket were not found, in env-variables or in --env file')
             print()

@@ -51,6 +51,7 @@ setup(
     author_email='zvolsky@seznam.cz',
     url='https://github.com/pyutil/django-b2',
     download_url='https://github.com/pyutil/django-b2/archive/%s.tar.gz' % __version__,
+    scripts=['scripts/pgtob2.sh'],
     packages=[
         'django_b2',
     ],
