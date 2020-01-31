@@ -36,9 +36,28 @@ Don't use the storage.py file. Use the backblaze_b2.py only.
     with open(filename2, 'wb') as f:
         f.write(content)
 
+### Large uploads
+
 Nginx large file uploads:
 You need at least modify /etc/nginx/nginx.conf, http section, add client_... settings.
 Read: https://vsoch.github.io/2018/django-nginx-upload/
+
+### Upload (backup) single file (new in 0.2.0)
+
+This is implemented in backblaze_b2.py file if called as script.
+We don't implement it (yet) as the django management command. That means outside of Django: You can use this too.
+And in Django: No need (at 0.2.0) to add this package to INSTALLED_APPS.
+
+You can describe the target bucket in environment variables or in the .ini file. For details:
+
+    python (path/)backblaze_b2.py --help
+
+### Backup the postgres database (new in 0.2.0)
+
+Once django-b2 is installed, pgtob2.sh script is available in the virtual environment.
+Write 'which pgtob2.sh' for its location.
+See comments inside the script for more info.  
+    
 
 ## Developers
 

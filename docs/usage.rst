@@ -2,7 +2,7 @@
 Usage
 =====
 
-Django
+**Django**:
 
 Add this to Django settings
 
@@ -15,7 +15,14 @@ Add this to Django settings
     B2_BUCKET_NAME=bucketname
 
 
-Without Django:
+**Large uploads**:
+
+Nginx large file uploads:
+You need at least modify /etc/nginx/nginx.conf, http section, add client... settings.
+Read: https://vsoch.github.io/2018/django-nginx-upload/
+
+
+**Without Django**:
 
 You can upload/download single files. This is not suitable for mass backups, see backblaze docs.
 
@@ -30,3 +37,21 @@ You can upload/download single files. This is not suitable for mass backups, see
     content = b2.download_file(filename)
     with open(filename2, 'wb') as f:
         f.write(content)
+
+**Upload/backup single file to b2 from console**:
+
+This is implemented in backblaze_b2.py file if called as script.
+We don't implement it (yet) as the django management command. That means outside of Django: You can use this too.
+And in Django: No need (at 0.2.0) to add this package to INSTALLED_APPS.
+
+You can describe the target bucket in environment variables or in the .ini file. For details:
+
+.. code-block:: bash
+
+    python (path/)backblaze_b2.py --help
+
+**Backup the postgres database**:
+
+Once django-b2 is installed, pgtob2.sh script is available in the virtual environment.
+Write 'which pgtob2.sh' for its location.
+Read comments inside the script for more info.

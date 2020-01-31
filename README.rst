@@ -49,14 +49,13 @@ Using outside of Django:
     with open(filename2, 'wb') as f:
         f.write(content)
 
-Nginx large file uploads:
-You need at least modify /etc/nginx/nginx.conf, http section, add client... settings.
-Read: https://vsoch.github.io/2018/django-nginx-upload/
 
 Features
 --------
 
-Django media storage (with storage.py) or general python access to BackBlaze B2 (without usage of storage.py).
+- Django media storage (with storage.py) or general python access to BackBlaze B2 (without usage of storage.py).
+- Upload single file to B2 (call backblaze_b2.py as script; new in 0.2.0)
+- Backup a postgres database to B2 (use script pgtob2.sh; new in 0.2.0)
 
 Running Tests
 -------------
