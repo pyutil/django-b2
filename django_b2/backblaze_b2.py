@@ -53,7 +53,8 @@ class BackBlazeB2(object):
     def upload_file(self, name, f):
         assert self.is_prepared()
         content = f.read()
-        if 'b' not in f.mode:
+        # warning: 'InMemoryUploadedFile' object has no attribute 'mode' (and content read is b'..')
+        if hasattr(f, 'mode') and 'b' not in f.mode:
             content = content.encode()
         uploadsource = UploadSourceBytes(content)
         return self.bucket.upload(uploadsource, name)

@@ -19,8 +19,32 @@ Add this to Django settings
 
 Nginx large file uploads:
 You need at least modify /etc/nginx/nginx.conf, http section, add client... settings.
+
 Read: https://vsoch.github.io/2018/django-nginx-upload/
 
+Example:
+    client_max_body_size 100M;
+    client_body_buffer_size 100M;
+    client_body_timeout 120;
+
+**Imagekit which need reopen the picture soon (Wagtail or so), local filesystem cache**
+
+If you upload an image and the imagekit want to reopen it immediately (to create thumbnails or so) it can fail
+because backblaze storage has the file not immediately accessible.
+We handle this that way that you can add B2_LOCAL_CACHE into your settings.
+
+    B2_LOCAL_CACHE='FM'
+
+F means that the copy of file is saved to the local filesystem MEDIA_ROOT too and the file is opened from this local "cache".
+That way the files are soon and faster accessible.
+M means that a log files are written into <MEDIA_ROOT>/_meta.
+With help of logs (_meta files) the locally cached files can be deleted: one hour later or 5 days later.
+
+TODO: The cache cleaning script will be implemented (and you will be able call it via cron, celery, ..)
+but this is not done in 0.3.0 yet.
+Feel free to delete older media files in local file system by hand: they will be served from backblaze.
+
+Or without deleting of local media files you can simple have local instances backuped on backblaze.
 
 **Without Django**:
 

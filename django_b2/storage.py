@@ -14,15 +14,17 @@
 
     behaviour of exceptions (FileNotFoundError, NotADirectoryError, ..) is not fully compatible
 
-    methods _open, save works but need experienced revision and rewrite (please help)
+    methods _open, _save works but need experienced revision and rewrite (please help)
 """
 
 
 from io import BytesIO
+import os
+from datetime import datetime
 
 from django.conf import settings
-from django.core.files.storage import Storage
-from django.core.files.base import File
+from django.core.files.storage import FileSystemStorage, Storage
+from django.core.files.base import ContentFile, File
 from django.utils.deconstruct import deconstructible
 
 from django_b2.backblaze_b2 import BackBlazeB2
@@ -31,6 +33,10 @@ from django_b2.backblaze_b2 import BackBlazeB2
 # B2File related imports, TODO: mix with non-experimental imports if B2File will be used
 from shutil import copyfileobj
 from tempfile import SpooledTemporaryFile
+
+
+# if 'M' in settings.B2_LOCAL_CACHE, list of uploaded files will be created in MEDIA_ROOT/<META_LOCATION>
+META_LOCATION = '_meta'
 
 
 # experimental (B2File class, B2Storage._open), inspired from django-storages DropBoxFile
@@ -68,6 +74,15 @@ class B2Storage(Storage):
         self.authorize(application_key_id, application_key)
         self.set_bucket(bucket_name)
 
+        self.fs = self.meta = None
+        if hasattr(settings, 'B2_LOCAL_CACHE'):
+            assert settings.MEDIA_ROOT, 'B2_LOCAL_CACHE used. Please set MEDIA_ROOT in your settings.'
+            if 'F' in settings.B2_LOCAL_CACHE:
+                self.fs = FileSystemStorage()
+            if 'M' in settings.B2_LOCAL_CACHE:
+                self.meta = os.path.join(settings.MEDIA_ROOT, META_LOCATION)
+                os.makedirs(self.meta, exist_ok=True)
+
     # you can re-authorize later
     def authorize(self, application_key_id, application_key):
         return self.b2.authorize("production", application_key_id, application_key)
@@ -98,13 +113,22 @@ class B2Storage(Storage):
         output.seek(0)
         return File(output, name)
         '''
-
-        # this is based on django-storage:DropBox
-        # TODO: this works, but need revision and rewrite, please help!
-        download_dest = self.b2.download_file_download_dest(name)
-        return B2File(name, download_dest)
+        if self.fs is not None and os.path.isfile(os.path.join(settings.MEDIA_ROOT, name)):
+            return self.fs._open(name)
+        else:
+            # this is based on django-storage:DropBox
+            # TODO: this works, but need revision and rewrite, please help!
+            download_dest = self.b2.download_file_download_dest(name)
+            return B2File(name, download_dest)
 
     def _save(self, name, f, max_length=None):
+        if self.fs is not None:
+            self.fs.save(name, ContentFile(f.read()))
+            f.seek(0)
+        if self.meta is not None:
+            metafile = os.path.join(self.meta, 'uplooad_' + datetime.now().isoformat()[:13])
+            with open(metafile, 'a') as mf:
+                mf.writelines([name + '\n'])
         response = self.b2.upload_file(name, f)
         return response.file_name
 

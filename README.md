@@ -22,6 +22,23 @@ Of course B2_.. values should never be published.
 Don't upload the settings file to public sites (github, ..) or use some technique to hide the secret parameters.
 This can be environment variables or hidden config file. You can see tests/test_B2Storage.py for ideas.
 
+### Imagekit which need reopen the picture soon (Wagtail or so), local filesystem cache
+
+If you upload an image and the imagekit want to reopen it immediately (to create thumbnails or so) it can fail
+because backblaze storage has the file not immediately accessible.
+We handle this that way that you can add B2_LOCAL_CACHE into your settings.
+
+    B2_LOCAL_CACHE='FM'
+
+F means that the copy of file is saved to the local filesystem MEDIA_ROOT too and the file is opened from this local "cache".
+That way the files are soon and faster accessible.
+M means that a log files are written into <MEDIA_ROOT>/_meta.
+With help of logs (_meta files) the locally cached files can be deleted: one hour later or 5 days later.
+
+TODO: The cache cleaning script will be implemented (and you will be able call it via cron, celery, ..)
+but this is not done in 0.3.0 yet.
+Feel free to delete older media files in local file system by hand: they will be served from backblaze.
+
 ### Using outside of Django
 
 Don't use the storage.py file. Use the backblaze_b2.py only.
@@ -40,7 +57,14 @@ Don't use the storage.py file. Use the backblaze_b2.py only.
 
 Nginx large file uploads:
 You need at least modify /etc/nginx/nginx.conf, http section, add client_... settings.
+
 Read: https://vsoch.github.io/2018/django-nginx-upload/
+
+Example:
+
+    client_max_body_size 100M;
+    client_body_buffer_size 100M;
+    client_body_timeout 120;
 
 ### Upload (backup) single file (new in 0.2.0)
 

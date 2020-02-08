@@ -3,6 +3,12 @@
 History
 -------
 
+0.3.0 (2020-02-08)
+++++++++++++++++++
+
+* B2_LOCAL_CACHE setting to make a local copy of files. So you can have local instances backuped on backblaze.
+* B2_LOCAL_CACHE prevents failures if the django application want immediately reopen the file (imagekits creating thumbnails, Wagtail is an example)
+
 0.2.0 (2020-01-31)
 ++++++++++++++++++
 
