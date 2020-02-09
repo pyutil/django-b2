@@ -37,6 +37,7 @@ from tempfile import SpooledTemporaryFile
 
 # if 'M' in settings.B2_LOCAL_CACHE, list of uploaded files will be created in MEDIA_ROOT/<META_LOCATION>
 META_LOCATION = '_meta'
+LOGFILE_PREFIX = 'upload_'
 
 
 # experimental (B2File class, B2Storage._open), inspired from django-storages DropBoxFile
@@ -114,23 +115,30 @@ class B2Storage(Storage):
         return File(output, name)
         '''
         if self.fs is not None and os.path.isfile(os.path.join(settings.MEDIA_ROOT, name)):
-            return self.fs._open(name)
-        else:
-            # this is based on django-storage:DropBox
-            # TODO: this works, but need revision and rewrite, please help!
-            download_dest = self.b2.download_file_download_dest(name)
-            return B2File(name, download_dest)
+            try:
+                return self.fs._open(name)
+            except Exception:
+                pass
+        # this is inspired by django-storage:DropBox
+        # TODO: this works, but need revision and rewrite, please help!
+        download_dest = self.b2.download_file_download_dest(name)
+        return B2File(name, download_dest)
 
     def _save(self, name, f, max_length=None):
         if self.fs is not None:
             self.fs.save(name, ContentFile(f.read()))
             f.seek(0)
         if self.meta is not None:
-            metafile = os.path.join(self.meta, 'uplooad_' + datetime.now().isoformat()[:13])
+            log_file = self.get_logfile_name(datetime.now())
+            metafile = os.path.join(self.meta, log_file)
             with open(metafile, 'a') as mf:
                 mf.writelines([name + '\n'])
         response = self.b2.upload_file(name, f)
         return response.file_name
+
+    @staticmethod
+    def get_logfile_name(dt):
+        return LOGFILE_PREFIX + dt.isoformat()[:13]
 
     def delete(self, name):
         return self.b2.delete_by_name(name)
