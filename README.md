@@ -7,7 +7,7 @@ Install the last stable release
 
     pip install django-b2
 
-Create bucket at backblaze.com. No need for older versions:
+Create bucket at backblaze.com. No need for older versions of saved files:
 While royendgel/django-backblazeb2-storage uses older versions, django-b2 will always rename to unique filename. 
 
 Add this to Django settings
@@ -17,6 +17,9 @@ Add this to Django settings
     B2_APP_KEY_ID=000xxxxxxxxxxxx000000000n
     B2_APP_KEY=keyvalue
     B2_BUCKET_NAME=bucketname
+    # optional, see docs, Usage:
+    MEDIA_ROOT = ..
+    B2_LOCAL_MEDIA = ..  # "", "M", "L", "ML"
 
 Of course B2_.. values should never be published.
 Don't upload the settings file to public sites (github, ..) or use some technique to hide the secret parameters.
@@ -26,18 +29,17 @@ This can be environment variables or hidden config file. You can see tests/test_
 
 If you upload an image and the imagekit want to reopen it immediately (to create thumbnails or so) it can fail
 because backblaze storage has the file not immediately accessible.
-We handle this that way that you can add B2_LOCAL_CACHE into your settings.
+We handle this that way that you can add B2_LOCAL_MEDIA into your settings.
 
-    B2_LOCAL_CACHE='FM'
+    B2_LOCAL_MEDIA='ML'
 
-F means that the copy of file is saved to the local filesystem MEDIA_ROOT too and the file is opened from this local "cache".
+M means that the copy of file is saved to the local filesystem MEDIA_ROOT too and the file is opened from this local "cache".
 That way the files are soon and faster accessible.
-M means that a log files are written into <MEDIA_ROOT>/_meta.
-With help of logs (_meta files) the locally cached files can be deleted: one hour later or 5 days later.
+L means that a log files are written into <MEDIA_ROOT>/_log.
+With help of logs (files in _log directory) the locally cached files can be deleted: one hour later or 5 days later.
 
-TODO: The cache cleaning script will be implemented (and you will be able call it via cron, celery, ..)
-but this is not done in 0.3.0 yet.
-Feel free to delete older media files in local file system by hand: they will be served from backblaze.
+There is a script (django management command) b2_clear_local_media usable via cron, celery,..
+It will delete local media files older than few hours or days. Later they will be served from backblaze.
 
 ### Using outside of Django
 

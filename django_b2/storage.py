@@ -35,8 +35,8 @@ from shutil import copyfileobj
 from tempfile import SpooledTemporaryFile
 
 
-# if 'M' in settings.B2_LOCAL_CACHE, list of uploaded files will be created in MEDIA_ROOT/<META_LOCATION>
-META_LOCATION = '_meta'
+# if 'L' in settings.B2_LOCAL_MEDIA, list (log) of uploaded files will be created in MEDIA_ROOT/<LOG_LOCATION>
+LOG_LOCATION = '_log'
 LOGFILE_PREFIX = 'upload_'
 
 
@@ -75,14 +75,14 @@ class B2Storage(Storage):
         self.authorize(application_key_id, application_key)
         self.set_bucket(bucket_name)
 
-        self.fs = self.meta = None
-        if hasattr(settings, 'B2_LOCAL_CACHE'):
-            assert settings.MEDIA_ROOT, 'B2_LOCAL_CACHE used. Please set MEDIA_ROOT in your settings.'
-            if 'F' in settings.B2_LOCAL_CACHE:
+        self.fs = self.log = None
+        if hasattr(settings, 'B2_LOCAL_MEDIA'):
+            assert settings.MEDIA_ROOT, 'B2_LOCAL_MEDIA used. Please set MEDIA_ROOT in your settings.'
+            if 'M' in settings.B2_LOCAL_MEDIA:
                 self.fs = FileSystemStorage()
-            if 'M' in settings.B2_LOCAL_CACHE:
-                self.meta = os.path.join(settings.MEDIA_ROOT, META_LOCATION)
-                os.makedirs(self.meta, exist_ok=True)
+            if 'L' in settings.B2_LOCAL_MEDIA:
+                self.log = os.path.join(settings.MEDIA_ROOT, LOG_LOCATION)
+                os.makedirs(self.log, exist_ok=True)
 
     # you can re-authorize later
     def authorize(self, application_key_id, application_key):
@@ -128,11 +128,11 @@ class B2Storage(Storage):
         if self.fs is not None:
             self.fs.save(name, ContentFile(f.read()))
             f.seek(0)
-        if self.meta is not None:
+        if self.log is not None:
             log_file = self.get_logfile_name(datetime.now())
-            metafile = os.path.join(self.meta, log_file)
-            with open(metafile, 'a') as mf:
-                mf.writelines([name + '\n'])
+            log_file = os.path.join(self.log, log_file)
+            with open(log_file, 'a') as lf:
+                lf.writelines([name + '\n'])
         response = self.b2.upload_file(name, f)
         return response.file_name
 
@@ -160,7 +160,6 @@ class B2Storage(Storage):
         # This is needed because Django will throw an exception if it's not
         # overridden by Storage subclasses. We don't need it.
         return name
-        # TODO: maybe this can be used to avoid some downloads / cache files locally?
         '''
         """
         Return a local filesystem path where the file can be retrieved using
