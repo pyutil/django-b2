@@ -66,6 +66,8 @@ class B2File(File):
 
 @deconstructible
 class B2Storage(Storage):
+    location = ''   # required at least for django-tenant-schemas
+
     def __init__(self):
         application_key_id = settings.B2_APP_KEY_ID
         application_key = settings.B2_APP_KEY
@@ -157,9 +159,11 @@ class B2Storage(Storage):
         return self.b2.get_download_url(name)
 
     def path(self, name):
-        # This is needed because Django will throw an exception if it's not
-        # overridden by Storage subclasses. We don't need it.
-        return name
+        # this was here but seems this is problem because at least Wagtail determinates by retval if the file is stored
+        #  locally, so it should (seems) return a full path not the relative one
+        #    # This is needed because Django will throw an exception if it's not
+        #    # overridden by Storage subclasses. We don't need it.
+        #    return name
         '''
         """
         Return a local filesystem path where the file can be retrieved using
@@ -168,6 +172,11 @@ class B2Storage(Storage):
         """
         raise NotImplementedError("This backend doesn't support absolute paths.")
         '''
+
+        full = os.path.join(settings.MEDIA_ROOT, name)
+        if os.path.isfile(full):
+            return full
+        return super().path(name)
 
     def get_accessed_time(self, name):
         return self.b2.get_accessed_time(name, use_tz=settings.USE_TZ)
