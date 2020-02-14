@@ -3,6 +3,11 @@
 History
 -------
 
+0.5.0 (2020-02-17)
+++++++++++++++++++
+
+* can work with django-tenant schemas, tenant aware storage django_b2.tenant_storage.TenantB2Storage
+
 0.4.0 (2020-02-10)
 ++++++++++++++++++
 

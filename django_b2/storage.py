@@ -158,7 +158,7 @@ class B2Storage(Storage):
     def url(self, name):
         return self.b2.get_download_url(name)
 
-    def path(self, name):
+    def xxxpath(self, name):
         # this was here but seems this is problem because at least Wagtail determinates by retval if the file is stored
         #  locally, so it should (seems) return a full path not the relative one
         #    # This is needed because Django will throw an exception if it's not
