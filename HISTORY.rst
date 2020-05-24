@@ -3,10 +3,11 @@
 History
 -------
 
-0.5.1 (2020-05-24)
+0.5.3 (2020-05-24)
 ++++++++++++++++++
 
 * bugfix: upload on Windows, thx Same Weaver, https://github.com/pyutil/django-b2/issues/2
+* Linux abs filenames: leading "/" will be removed so we can use local abs names 1:1 to upload to b2 (in Windows: C:/.. is valid name)
 
 0.5.0 (2020-02-17)
 ++++++++++++++++++

@@ -47,7 +47,7 @@ class BackBlazeB2(object):
     def download_file_download_dest(self, name):   # return DownloadDestBytes() object
         assert self.is_prepared()
         download_dest = DownloadDestBytes()
-        self.bucket.download_file_by_name(name, download_dest)
+        self.bucket.download_file_by_name(self.fix_b2name(name), download_dest)
         return download_dest
 
     def upload_file(self, name, f):
@@ -57,7 +57,19 @@ class BackBlazeB2(object):
         if hasattr(f, 'mode') and 'b' not in f.mode:
             content = content.encode()
         uploadsource = UploadSourceBytes(content)
-        return self.bucket.upload(uploadsource, name)
+        return self.bucket.upload(uploadsource, self.fix_b2name(name))
+
+    def fix_b2name(self, name):
+        # https://github.com/pyutil/django-b2/issues/2
+        # behaviour on Windows, thx to Sam Weaver, 24.5.2020, v0.5.1
+        if "\\" in name:
+            name = name.replace("\\", "/")
+
+        # file name should be always relative to bucketl; with following we can save abs paths 1:1 to the bucket
+        if name[:1] == '/':
+            name = name[1:]
+
+        return name
 
     def upload_file_unique_name_outside_django(self, name, f):
         """
@@ -71,7 +83,7 @@ class BackBlazeB2(object):
 
     def delete_file_version(self, name, file_id):
         assert self.is_prepared()
-        return self.bucket.delete_file_version(file_id, name)
+        return self.bucket.delete_file_version(file_id, self.fix_b2name(name))
 
     # maybe expensive
     def purge_bucket(self):
@@ -94,6 +106,7 @@ class BackBlazeB2(object):
 
     def get_download_url(self, name):
         assert self.is_prepared()
+        name = self.fix_b2name(name)
         url = self.bucket.get_download_url(name)   # == self.b2.get_file_url(name)
         if 'private' in self.bucket.bucket_dict['bucketType'].lower():
             url += '?Authorization=' + self.bucket.get_download_authorization(name,
@@ -141,6 +154,7 @@ class BackBlazeB2(object):
         # returns at most 1000 file names per transaction
         assert self.is_prepared()
         if name:
+            name = self.fix_b2name(name)
             start_file_name = name
             kwargs = {'prefix': name}
         else:
