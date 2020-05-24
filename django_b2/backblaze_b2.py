@@ -203,7 +203,7 @@ class BackBlazeB2(object):
     @staticmethod
     def fix_b2name(name):
         # https://github.com/pyutil/django-b2/issues/2
-        # behaviour on Windows, thx to Sam Weaver, 24.5.2020, v0.5.1
+        # behaviour on Windows, thx to Sam Weaver, 24.5.2020, v0.5.5
         if "\\" in name:
             name = name.replace("\\", "/")
 

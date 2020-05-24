@@ -127,12 +127,6 @@ class B2Storage(Storage):
         return B2File(name, download_dest)
 
     def _save(self, name, f, max_length=None):
-
-        # https://github.com/pyutil/django-b2/issues/2
-        # behaviour on Windows, thx to Sam Weaver, 24.5.2020, v0.5.1
-        if "\\" in name:
-            name = name.replace("\\", "/")
-
         if self.fs is not None:
             self.fs.save(name, ContentFile(f.read()))
             f.seek(0)
