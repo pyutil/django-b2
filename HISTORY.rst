@@ -3,7 +3,7 @@
 History
 -------
 
-0.5.3 (2020-05-24)
+0.5.4 (2020-05-24)
 ++++++++++++++++++
 
 * bugfix: upload on Windows, thx Same Weaver, https://github.com/pyutil/django-b2/issues/2

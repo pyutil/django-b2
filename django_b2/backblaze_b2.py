@@ -59,18 +59,6 @@ class BackBlazeB2(object):
         uploadsource = UploadSourceBytes(content)
         return self.bucket.upload(uploadsource, self.fix_b2name(name))
 
-    def fix_b2name(self, name):
-        # https://github.com/pyutil/django-b2/issues/2
-        # behaviour on Windows, thx to Sam Weaver, 24.5.2020, v0.5.1
-        if "\\" in name:
-            name = name.replace("\\", "/")
-
-        # file name should be always relative to bucketl; with following we can save abs paths 1:1 to the bucket
-        if name[:1] == '/':
-            name = name[1:]
-
-        return name
-
     def upload_file_unique_name_outside_django(self, name, f):
         """
             django storage auto-calls get_alternative_name() so from django call upload_file() directly
@@ -116,6 +104,7 @@ class BackBlazeB2(object):
     # maybe expensive
     def ls(self, path, fetch_count=LS_FETCH_COUNT):
         assert self.is_prepared()
+        path = self.fix_b2name(path)
         # this is generator (which handles chunks, so it returns all entries & fetch_count has an internal effect only)
         return self.bucket.ls(folder_to_list=path, fetch_count=fetch_count)
 
@@ -124,6 +113,7 @@ class BackBlazeB2(object):
         """
             :return: compatible with Django storage : listdir
         """
+        path = self.fix_b2name(path)
         if len(path) and path[-1] != '/':
             path += '/'
         dirs = set()
@@ -139,6 +129,7 @@ class BackBlazeB2(object):
     def file_by_name(self, name):
         # is there a less stupid way to do it?
         assert self.is_prepared()
+        name = self.fix_b2name(name)
         fn = self.b2_api.raw_api.list_file_names(self.b2_api.account_info.get_api_url(),
                                                  self.b2_api.account_info.get_account_auth_token(),
                                                  self.bucket.get_id(),
@@ -147,6 +138,7 @@ class BackBlazeB2(object):
 
     def versions_by_name(self, name):
         # is there a less stupid way to do it?
+        name = self.fix_b2name(name)
         fn = self._list_versions(name)
         return self._x_by_name_result(fn, name)
 
@@ -154,7 +146,6 @@ class BackBlazeB2(object):
         # returns at most 1000 file names per transaction
         assert self.is_prepared()
         if name:
-            name = self.fix_b2name(name)
             start_file_name = name
             kwargs = {'prefix': name}
         else:
@@ -208,6 +199,19 @@ class BackBlazeB2(object):
             return datetime.utcfromtimestamp(ts).replace(tzinfo=timezone.utc)
         else:
             return datetime.fromtimestamp(ts)
+
+    @staticmethod
+    def fix_b2name(name):
+        # https://github.com/pyutil/django-b2/issues/2
+        # behaviour on Windows, thx to Sam Weaver, 24.5.2020, v0.5.1
+        if "\\" in name:
+            name = name.replace("\\", "/")
+
+        # file name should be always relative to bucketl; with following we can save abs paths 1:1 to the bucket
+        if name[:1] == '/':
+            name = name[1:]
+
+        return name
 
     # named compatible with Django 3.0
     def get_alternative_name(self, name):
