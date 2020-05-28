@@ -67,24 +67,46 @@ class B2File(File):
 @deconstructible
 class B2Storage(Storage):
     location = ''   # required at least for django-tenant-schemas
+    _b2 = None
+    _fs = None
+    _log = None
 
-    def __init__(self):
+    @property
+    def b2(self):
+        self.check_init()
+        return self._b2
+
+    @property
+    def fs(self):
+        self.check_init()
+        return self._fs
+
+    @property
+    def log(self):
+        self.check_init()
+        return self._log
+
+    def check_init(self):
+        # we always check for _b2, because _fs & _log can stay None after lazy_init
+        if self._b2 is None:
+            self.lazy_init()
+
+    def lazy_init(self):
         application_key_id = settings.B2_APP_KEY_ID
         application_key = settings.B2_APP_KEY
         bucket_name = settings.B2_BUCKET_NAME
 
-        self.b2 = BackBlazeB2()
+        self._b2 = BackBlazeB2()
         self.authorize(application_key_id, application_key)
         self.set_bucket(bucket_name)
 
-        self.fs = self.log = None
         if hasattr(settings, 'B2_LOCAL_MEDIA'):
             assert settings.MEDIA_ROOT, 'B2_LOCAL_MEDIA used. Please set MEDIA_ROOT in your settings.'
             if 'M' in settings.B2_LOCAL_MEDIA:
-                self.fs = FileSystemStorage()
+                self._fs = FileSystemStorage()
             if 'L' in settings.B2_LOCAL_MEDIA:
-                self.log = os.path.join(settings.MEDIA_ROOT, LOG_LOCATION)
-                os.makedirs(self.log, exist_ok=True)
+                self._log = os.path.join(settings.MEDIA_ROOT, LOG_LOCATION)
+                os.makedirs(self._log, exist_ok=True)
 
     # you can re-authorize later
     def authorize(self, application_key_id, application_key):

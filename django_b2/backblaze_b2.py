@@ -19,12 +19,16 @@ DOWNLOAD_TIMEOUT = 1800  # validity of download links [s]
 
 
 class BackBlazeB2(object):
-    def __init__(self):
-        info = InMemoryAccountInfo()
-        self.b2_api = B2Api(info)
+    _b2_api = None
+    bucket = None
+    authorized = False
 
-        self.bucket = None
-        self.authorized = False
+    @property
+    def b2_api(self):
+        if self._b2_api is None:
+            info = InMemoryAccountInfo()
+            self._b2_api = B2Api(info)
+        return self._b2_api
 
     # need to call this after instantiate; you could change this later
     def authorize(self, name, application_key_id, application_key):

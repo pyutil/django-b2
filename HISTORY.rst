@@ -3,6 +3,11 @@
 History
 -------
 
+0.6.0 (2020-05-28)
+++++++++++++++++++
+
+* lazy loading, to avoid running code during collectstatic,.. - https://github.com/pyutil/django-b2/issues/3
+
 0.5.5 (2020-05-24)
 ++++++++++++++++++
 
