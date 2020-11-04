@@ -3,7 +3,7 @@
 History
 -------
 
-0.6.1 (2020-11-04)
+0.6.2 (2020-11-04)
 ++++++++++++++++++
 
 * B2Storage() initializes as the settings.DEFAULT_FILE_STORAGE if 'B2Storage' string is not inside

@@ -85,7 +85,7 @@ Once django-b2 is installed, pgtob2.sh script is available in the virtual enviro
 Write 'which pgtob2.sh' for its location.
 See comments inside the script for more info.  
 
-### Other (this is not well tested)
+### More (this is not well tested)
 
 django-tenants instead of django-tenant-schemas? Maybe it could work but the mixin is inside the django-tenant-schemas package.
 Add django-tenant-schemas into requirements too but don't add it into INSTALLED_APPS/SHARED_APPS.
