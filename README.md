@@ -84,7 +84,17 @@ You can describe the target bucket in environment variables or in the .ini file.
 Once django-b2 is installed, pgtob2.sh script is available in the virtual environment.
 Write 'which pgtob2.sh' for its location.
 See comments inside the script for more info.  
-    
+
+### Other (this is not well tested)
+
+django-tenants instead of django-tenant-schemas? Maybe it could work but the mixin is inside the django-tenant-schemas package.
+Add django-tenant-schemas into requirements too but don't add it into INSTALLED_APPS/SHARED_APPS.
+
+storage=B2Storage() in models, turn it off during tests. See https://github.com/pyutil/django-b2/issues/4
+To work as real B2Storage, 'B2Storage' string must be contained in settings.DEFAULT_FILE_STORAGE.
+Otherwise DEFAULT_FILE_STORAGE will be instantiated.
+This makes following in tests possible:
+@override_settings(DEFAULT_FILE_STORAGE='django.core.files.storage.FileSystemStorage')
 
 ## Developers
 
