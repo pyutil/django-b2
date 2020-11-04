@@ -1,5 +1,6 @@
 # Tenant aware storages
-# Can be used together with postgres and django-tenant-schemas
+# Can be used together with postgres and django-tenant-schemas..
+# ..and probably (need testing) with django-tenants if you add django-tenant-schemas into requirements (but not to INSTALLED_APPS)
 
 # https://github.com/bernardopires/django-tenant-schemas/issues/565
 
