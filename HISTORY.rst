@@ -3,6 +3,13 @@
 History
 -------
 
+0.6.1 (2020-11-04)
+++++++++++++++++++
+
+* B2Storage() initializes as the settings.DEFAULT_FILE_STORAGE if 'B2Storage' string is not inside
+  can be used together with @override_settings(DEFAULT_FILE_STORAGE='django.core.files.storage.FileSystemStorage')
+  see https://github.com/pyutil/django-b2/issues/4
+
 0.6.0 (2020-05-28)
 ++++++++++++++++++
 
