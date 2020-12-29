@@ -22,6 +22,11 @@ class BackBlazeB2(object):
     _b2_api = None
     bucket = None
     authorized = False
+    force_unique = True
+
+    def __init__(self, force_unique=True):  # by default uploads receive the name made unique as <uuid>/name
+        self.force_unique = force_unique   # this can make problems if the upload library itselve handles this
+            # example: django_drf_filepond, with True we receive <uuid1>/<uuid2>/name, so force_unique=False should be set
 
     @property
     def b2_api(self):
@@ -219,23 +224,29 @@ class BackBlazeB2(object):
 
     # named compatible with Django 3.0
     def get_alternative_name(self, name):
-        name = name.split('/')
-        name.insert(len(name) - 1, str(uuid.uuid4()))
-        return '/'.join(name)
+        if self.force_unique:
+            name = name.split('/')
+            name.insert(len(name) - 1, str(uuid.uuid4()))
+            return '/'.join(name)
+        else:
+            return name
 
     def get_original_name(self, name):
-        return get_original_name(name)
+        return get_original_name(name, force_unique=self.force_unique)
 
 
 # ------- utils, can be imported separately -----------------------
 
 
 # revert get_alternative_name()
-def get_original_name(name):
-    name = name.split('/')
-    if len(name) > 1:
-        del name[-2]
-    return '/'.join(name)
+def get_original_name(name, force_unique=True):
+    if force_unique:
+        name = name.split('/')
+        if len(name) > 1:
+            del name[-2]
+        return '/'.join(name)
+    else:
+        return name
 
 
 # ------- commands -----------------------

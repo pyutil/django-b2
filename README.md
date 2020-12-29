@@ -15,24 +15,37 @@ Add this to Django settings
     MEDIA_URL = '/media/'
     DEFAULT_FILE_STORAGE = 'django_b2.storage.B2Storage'                 # if used without django-tenant-schemas
     # DEFAULT_FILE_STORAGE = 'django_b2.tenant_storage.TenantB2Storage'  # if used with django-tenant-schemas (django-tenants: see notice in code)
-    B2_APP_KEY_ID=000xxxxxxxxxxxx000000000n
-    B2_APP_KEY=keyvalue
-    B2_BUCKET_NAME=bucketname
-    # optional, see docs, Usage:
+    B2_APP_KEY_ID = 000xxxxxxxxxxxx000000000n
+    B2_APP_KEY = keyvalue
+    B2_BUCKET_NAME = bucketname
+    # see bellow:
+    B2_FORCE_UNIQUE = False | True  # for v0.7, True is default
+    # optional, see bellow:
     MEDIA_ROOT = ..
     B2_LOCAL_MEDIA = ..  # "", "M", "L", "ML"
 
-Of course B2_.. values should never be published.
+Of course B2_.. values (..KEY..) should never be published.
 Don't upload the settings file to public sites (github, ..) or use some technique to hide the secret parameters.
 This can be environment variables or hidden config file. You can see tests/test_B2Storage.py for ideas.
 
-### Imagekit which need reopen the picture soon (Wagtail or so), local filesystem cache
+### Upload library which enforces name uniqueness
+
+django_b2 saves each file into unique folder ie. as <uuid>/name.
+This should prevent problems with non unique names.
+If this doesn't work properly in your case especially if other tool makes the same thing you should turn this feature off.
+Example: django_drf_filepond creates similar uniquely named folders. In such case set
+
+    B2_FORCE_UNIQUE = False
+
+We recommend set this always (False|True) because the default could change in the future.
+
+### Imagekit which need reopen the picture soon (Wagtail?), local filesystem cache
 
 If you upload an image and the imagekit want to reopen it immediately (to create thumbnails or so) it can fail
 because backblaze storage has the file not immediately accessible.
 We handle this that way that you can add B2_LOCAL_MEDIA into your settings.
 
-    B2_LOCAL_MEDIA='ML'
+    B2_LOCAL_MEDIA = 'ML'
 
 M means that the copy of file is saved to the local filesystem MEDIA_ROOT too and the file is opened from this local "cache".
 That way the files are soon and faster accessible.

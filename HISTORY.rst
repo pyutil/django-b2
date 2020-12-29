@@ -3,6 +3,11 @@
 History
 -------
 
+0.7.0 (2020-12-29)
+++++++++++++++++++
+
+* new Django setting B2_FORCE_UNIQUE and new underlaying constructor parameter BackBlazeB2(force_unique=True)
+
 0.6.2 (2020-11-04)
 ++++++++++++++++++
 

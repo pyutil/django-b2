@@ -32,10 +32,12 @@ Add into your settings:
     MEDIA_URL = '/media/'
     DEFAULT_FILE_STORAGE = 'django_b2.storage.B2Storage'                 # if used without django-tenant-schemas
     # DEFAULT_FILE_STORAGE = 'django_b2.tenant_storage.TenantB2Storage'  # if used with django-tenant-schemas
-    B2_APP_KEY_ID=000xxxxxxxxxxxx000000000n
-    B2_APP_KEY=keyvalue
-    B2_BUCKET_NAME=bucketname
-    # optional, see Usage:
+    B2_APP_KEY_ID = 000xxxxxxxxxxxx000000000n
+    B2_APP_KEY = keyvalue
+    B2_BUCKET_NAME = bucketname
+    # optional, see Usage (docs/usage.rst):
+    B2_FORCE_UNIQUE = False
+    # optional, see Usage (docs/usage.rst):
     MEDIA_ROOT = ..
     B2_LOCAL_MEDIA = ..  # "", "M", "L", "ML"
 

@@ -14,6 +14,8 @@ Add this to Django settings
     B2_APP_KEY_ID=000xxxxxxxxxxxx000000000n
     B2_APP_KEY=keyvalue
     B2_BUCKET_NAME=bucketname
+    # see bellow:
+    B2_FORCE_UNIQUE = False | True  # for v0.7, True is default
     # optional, see bellow:
     MEDIA_ROOT = ..
     B2_LOCAL_MEDIA = ..  # "", "M", "L", "ML"
@@ -29,6 +31,17 @@ Example:
     client_max_body_size 100M;
     client_body_buffer_size 100M;
     client_body_timeout 120;
+
+**Upload library which enforces name uniqueness**
+
+django_b2 saves each file into unique folder ie. as <uuid>/name.
+This should prevent problems with non unique names.
+If this doesn't work properly in your case especially if other tool makes the same thing you should turn this feature off.
+Example: django_drf_filepond creates similar uniquely named folders. In such case set
+
+    B2_FORCE_UNIQUE = False
+
+We recommend set this always (False|True) because the default could change in the future.
 
 **Imagekit which need reopen the picture soon (Wagtail or so), local filesystem cache**
 

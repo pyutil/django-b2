@@ -117,7 +117,7 @@ if standard_mode:
             application_key = settings.B2_APP_KEY
             bucket_name = settings.B2_BUCKET_NAME
 
-            self._b2 = BackBlazeB2()
+            self._b2 = BackBlazeB2(force_unique=getattr(settings, 'B2_FORCE_UNIQUE', True))
             self.authorize(application_key_id, application_key)
             self.set_bucket(bucket_name)
 
@@ -193,7 +193,7 @@ if standard_mode:
             return self.b2.listdir(path)
 
         def exists(self, name):
-            return self.b2.file_id_by_name(name) is not None
+            return self.b2.file_id_by_name(name) is not None or self.b2.file_id_by_name(self.b2.get_original_name(name)) is not None
 
         def size(self, name):
             return self.b2.get_file_info_by_name(name)['contentLength']
