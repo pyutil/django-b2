@@ -57,7 +57,7 @@ setup(
     ],
     include_package_data=True,
     install_requires=[
-        'b2sdk==1.0.2',    # duplicate in requirements.py
+        'b2sdk==1.14.1',    # duplicate in requirements.py
     ],
     license="MIT",
     zip_safe=False,
